@@ -48,6 +48,7 @@ async function run() {
         const packagesCollection = client.db("exploreNestDB").collection("packages");
         const storiesCollection = client.db("exploreNestDB").collection("stories");
         const guidesCollection = client.db("exploreNestDB").collection("guides");
+        const userCollection = client.db("exploreNestDB").collection("users");
 
         // jwt related api
         app.get('/jwt', async (req, res) => {
@@ -82,12 +83,35 @@ async function run() {
             const result = await guidesCollection.find().toArray();
             res.send(result);
         });
+        app.get('/guides/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await guidesCollection.findOne(query);
+            // console.log(result);
+            res.send(result);
+        });
 
         // stories related api
         app.get('/stories', async (req, res) => {
             const result = await storiesCollection.find().toArray();
             res.send(result);
         });
+
+        // users related api
+        app.get('/users', async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        })
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const query = { email: user.email };
+            const userExists = await userCollection.findOne(query);
+            if (userExists) {
+                return res.send({ message: 'user already exists', insertedId: null })
+            }
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        })
 
     } finally {
         // Ensures that the client will close when you finish/error
