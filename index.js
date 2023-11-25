@@ -3,7 +3,7 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
 // middleware
@@ -46,6 +46,8 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
         const packagesCollection = client.db("exploreNestDB").collection("packages");
+        const storiesCollection = client.db("exploreNestDB").collection("stories");
+        const guidesCollection = client.db("exploreNestDB").collection("guides");
 
         // jwt related api
         app.get('/jwt', async (req, res) => {
@@ -58,7 +60,32 @@ async function run() {
 
         // packages related api
         app.get('/allPackages', async (req, res) => {
-            const result = await packagesCollection.find().toArray();
+            let queryObj = {};
+            const category = req.query.category;
+            if (category) {
+                const searchPattern = new RegExp(category, 'i');
+                queryObj.tourType = { $regex: searchPattern }
+            }
+            const result = await packagesCollection.find(queryObj).toArray();
+            res.send(result);
+        });
+        app.get('/allPackages/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await packagesCollection.findOne(query);
+            // console.log(result);
+            res.send(result);
+        });
+
+        // guides related api
+        app.get('/guides', async (req, res) => {
+            const result = await guidesCollection.find().toArray();
+            res.send(result);
+        });
+
+        // stories related api
+        app.get('/stories', async (req, res) => {
+            const result = await storiesCollection.find().toArray();
             res.send(result);
         });
 
