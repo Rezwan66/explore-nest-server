@@ -91,6 +91,33 @@ async function run() {
             // console.log(result);
             res.send(result);
         });
+        app.patch('/guides/:id', async (req, res) => {
+            const id = req.params.id;
+            const review = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const previous = await guidesCollection.findOne(filter);
+            // console.log(previous?.reviews);
+            if (previous?.reviews) {
+                const updatedDoc = {
+                    $set: {
+                        reviews: [...previous?.reviews, review]
+                    }
+                }
+                const result = await guidesCollection.updateOne(filter, updatedDoc);
+                res.send(result);
+                return;
+            } else {
+                const updatedDoc = {
+                    $set: {
+                        reviews: [review]
+                    }
+                }
+                const result = await guidesCollection.updateOne(filter, updatedDoc);
+                res.send(result);
+            }
+
+            // const result = await guidesCollection.findOneAndUpdate(filter)
+        })
 
         // stories related api
         app.get('/stories', async (req, res) => {
