@@ -128,6 +128,13 @@ async function run() {
             const result = await storiesCollection.find().toArray();
             res.send(result);
         });
+        app.get('/stories/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await storiesCollection.findOne(query);
+            // console.log(result);
+            res.send(result);
+        })
 
         // users related api
         app.get('/users', async (req, res) => {
@@ -146,6 +153,12 @@ async function run() {
         })
 
         // bookings related api
+        app.get('/bookings', async (req, res) => {
+            const userEmail = req.query.email;
+            const query = { touristEmail: userEmail };
+            const result = await bookingsCollection.find(query).toArray();
+            res.send(result);
+        })
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
             // console.log(booking);
@@ -154,9 +167,20 @@ async function run() {
         })
 
         // wishlist api
+        app.get('/wishlist', async (req, res) => {
+            const userEmail = req.query.email;
+            const query = { userEmail: userEmail };
+            const result = await wishlistCollection.find(query).toArray();
+            res.send(result);
+        })
         app.post('/wishlist', async (req, res) => {
             const wishlistItem = req.body;
-            console.log(wishlistItem);
+            // console.log(wishlistItem);
+            const filter = { userEmail: wishlistItem.userEmail, package_id: wishlistItem.package_id };
+            const userWishlist = await wishlistCollection.find(filter).toArray();
+            if (userWishlist.length) {
+                return res.send({ message: 'Package already in wishlist', insertedId: null })
+            }
             const result = await wishlistCollection.insertOne(wishlistItem);
             res.send(result);
         })
