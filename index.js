@@ -50,6 +50,7 @@ async function run() {
         const guidesCollection = client.db("exploreNestDB").collection("guides");
         const userCollection = client.db("exploreNestDB").collection("users");
         const bookingsCollection = client.db("exploreNestDB").collection("bookings");
+        const wishlistCollection = client.db("exploreNestDB").collection("wishlist");
 
         // jwt related api
         app.get('/jwt', async (req, res) => {
@@ -92,31 +93,34 @@ async function run() {
             res.send(result);
         });
         app.patch('/guides/:id', async (req, res) => {
-            const id = req.params.id;
-            const review = req.body;
-            const filter = { _id: new ObjectId(id) };
-            const previous = await guidesCollection.findOne(filter);
-            // console.log(previous?.reviews);
-            if (previous?.reviews) {
-                const updatedDoc = {
-                    $set: {
-                        reviews: [...previous?.reviews, review]
+            try {
+                const id = req.params.id;
+                const review = req.body;
+                const filter = { _id: new ObjectId(id) };
+                const previous = await guidesCollection.findOne(filter);
+                // console.log(previous?.reviews);
+                if (previous?.reviews) {
+                    const updatedDoc = {
+                        $set: {
+                            reviews: [...previous?.reviews, review]
+                        }
                     }
-                }
-                const result = await guidesCollection.updateOne(filter, updatedDoc);
-                res.send(result);
-                return;
-            } else {
-                const updatedDoc = {
-                    $set: {
-                        reviews: [review]
+                    const result = await guidesCollection.updateOne(filter, updatedDoc);
+                    res.send(result);
+                } else {
+                    const updatedDoc = {
+                        $set: {
+                            reviews: [review]
+                        }
                     }
+                    const result = await guidesCollection.updateOne(filter, updatedDoc);
+                    res.send(result);
                 }
-                const result = await guidesCollection.updateOne(filter, updatedDoc);
-                res.send(result);
+            } catch (error) {
+                console.error('Error updating guide with review:', error);
+                res.status(500).send({ error: 'Internal Server Error' });
             }
 
-            // const result = await guidesCollection.findOneAndUpdate(filter)
         })
 
         // stories related api
@@ -146,6 +150,14 @@ async function run() {
             const booking = req.body;
             // console.log(booking);
             const result = await bookingsCollection.insertOne(booking);
+            res.send(result);
+        })
+
+        // wishlist api
+        app.post('/wishlist', async (req, res) => {
+            const wishlistItem = req.body;
+            console.log(wishlistItem);
+            const result = await wishlistCollection.insertOne(wishlistItem);
             res.send(result);
         })
 
