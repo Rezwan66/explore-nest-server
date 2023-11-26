@@ -49,6 +49,7 @@ async function run() {
         const storiesCollection = client.db("exploreNestDB").collection("stories");
         const guidesCollection = client.db("exploreNestDB").collection("guides");
         const userCollection = client.db("exploreNestDB").collection("users");
+        const bookingsCollection = client.db("exploreNestDB").collection("bookings");
 
         // jwt related api
         app.get('/jwt', async (req, res) => {
@@ -110,6 +111,14 @@ async function run() {
                 return res.send({ message: 'user already exists', insertedId: null })
             }
             const result = await userCollection.insertOne(user);
+            res.send(result);
+        })
+
+        // bookings related api
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            // console.log(booking);
+            const result = await bookingsCollection.insertOne(booking);
             res.send(result);
         })
 
