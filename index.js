@@ -135,6 +135,11 @@ async function run() {
             // console.log(result);
             res.send(result);
         })
+        app.post('/stories', async (req, res) => {
+            const story = req.body;
+            const result = await storiesCollection.insertOne(story);
+            res.send(result);
+        })
 
         // users related api
         app.get('/users', async (req, res) => {
