@@ -156,6 +156,41 @@ async function run() {
             const result = await userCollection.insertOne(user);
             res.send(result);
         })
+        app.patch('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    role: 'Admin'
+                }
+            };
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+        app.patch('/users/guide/:id', async (req, res) => {
+            try {
+                const id = req.params.id;
+                const guide = req.body;
+                // console.log(id, guide);
+                const addGuideFilter = { contact: guide?.contact };
+                const guideAlready = await guidesCollection.findOne(addGuideFilter);
+                if (!guideAlready) {
+                    const addGuideResult = await guidesCollection.insertOne(guide)
+                }
+
+                const filter = { _id: new ObjectId(id) };
+                const updatedDoc = {
+                    $set: {
+                        role: 'Guide'
+                    }
+                };
+                const updateResult = await userCollection.updateOne(filter, updatedDoc);
+                res.send(updateResult);
+            } catch (error) {
+                console.error('Error adding guide', error);
+                res.status(500).send({ error: 'Internal Server Error' });
+            }
+        })
 
         // bookings related api
         app.get('/bookings', async (req, res) => {
