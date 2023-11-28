@@ -71,6 +71,16 @@ async function run() {
             }
             next();
         }
+        const verifyGuide = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const isGuide = user?.role === 'Guide';
+            if (!isGuide) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
+        }
 
         // packages related api
         app.get('/allPackages', async (req, res) => {
@@ -90,6 +100,11 @@ async function run() {
             // console.log(result);
             res.send(result);
         });
+        app.post('/allPackages', verifyToken, verifyAdmin, async (req, res) => {
+            const item = req.body;
+            const result = await packagesCollection.insertOne(item);
+            res.send(result);
+        })
 
         // guides related api
         app.get('/guides', async (req, res) => {
@@ -243,7 +258,7 @@ async function run() {
         })
 
         // wishlist api
-        app.get('/wishlist', verifyToken, async (req, res) => {
+        app.get('/wishlist', async (req, res) => {
             const userEmail = req.query.email;
             const query = { userEmail: userEmail };
             const result = await wishlistCollection.find(query).toArray();
