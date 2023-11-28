@@ -28,7 +28,7 @@ async function run() {
         // await client.connect();
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
         const packagesCollection = client.db("exploreNestDB").collection("packages");
         const storiesCollection = client.db("exploreNestDB").collection("stories");
@@ -118,6 +118,30 @@ async function run() {
             // console.log(result);
             res.send(result);
         });
+        app.get('/guidesProfile', verifyToken, verifyGuide, async (req, res) => {
+            const email = req.query.email;
+            const query = { contact: email };
+            const result = await guidesCollection.findOne(query);
+            res.send(result);
+        })
+        app.patch('/guidesProfile/:id', verifyToken, verifyGuide, async (req, res) => {
+            const item = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    name: item.guideName,
+                    photo: item.guidePhoto,
+                    bio: item.guideBio,
+                    education: item.guideEducation,
+                    skills: item.guideSkills,
+                    experience: item.guideExperience,
+                }
+            };
+            // console.log(updatedDoc, filter);
+            const result = await guidesCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
         app.patch('/guides/:id', verifyToken, async (req, res) => {
             try {
                 const id = req.params.id;
