@@ -268,6 +268,25 @@ async function run() {
             const result = await bookingsCollection.find(query).toArray();
             res.send(result);
         })
+        app.get('/bookingsGuide', verifyToken, verifyGuide, async (req, res) => {
+            const guideEmail = req.query.email;
+            const query = { guideEmail: guideEmail };
+            const result = await bookingsCollection.find(query).toArray();
+            res.send(result);
+        })
+        app.patch('/bookingsGuide/:id', verifyToken, verifyGuide, async (req, res) => {
+            const id = req.params.id;
+            const { value } = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: value
+                },
+            };
+            // console.log(value, filter, updatedDoc);
+            const result = await bookingsCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
         app.post('/bookings', verifyToken, async (req, res) => {
             const booking = req.body;
             // console.log(booking);
