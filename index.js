@@ -91,14 +91,53 @@ async function run() {
     };
     // packages related api
     app.get('/allPackages', async (req, res) => {
-      let queryObj = {};
-      const category = req.query.category;
-      if (category) {
-        const searchPattern = new RegExp(category, 'i');
-        queryObj.tourType = { $regex: searchPattern };
+      try {
+        let queryObj = {};
+        
+        // Search by title
+        if (req.query.search) {
+          queryObj.tripTitle = { $regex: req.query.search, $options: 'i' };
+        }
+        
+        // Filter by category
+        if (req.query.category) {
+          queryObj.tourType = { $regex: req.query.category, $options: 'i' };
+        }
+        
+        // Filter by price range
+        if (req.query.minPrice || req.query.maxPrice) {
+          queryObj.price = {};
+          if (req.query.minPrice) queryObj.price.$gte = parseInt(req.query.minPrice);
+          if (req.query.maxPrice) queryObj.price.$lte = parseInt(req.query.maxPrice);
+        }
+
+        // Sorting
+        let sortObj = {};
+        if (req.query.sort === 'price_asc') {
+          sortObj.price = 1;
+        } else if (req.query.sort === 'price_desc') {
+          sortObj.price = -1;
+        }
+
+        // Pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 8;
+        const skip = (page - 1) * limit;
+
+        const cursor = packagesCollection.find(queryObj).sort(sortObj).skip(skip).limit(limit);
+        const result = await cursor.toArray();
+        const total = await packagesCollection.countDocuments(queryObj);
+
+        res.send({
+          packages: result,
+          totalPages: Math.ceil(total / limit),
+          currentPage: page,
+          totalItems: total
+        });
+      } catch (error) {
+        console.error('Error fetching packages:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
       }
-      const result = await packagesCollection.find(queryObj).toArray();
-      res.send(result);
     });
     app.get('/allPackages/:id', async (req, res) => {
       const id = req.params.id;
