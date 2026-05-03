@@ -321,6 +321,10 @@ async function run() {
       }
     );
     // bookings related api
+    app.get('/bookingsAdmin',verifyToken, verifyAdmin, async (req, res) => {
+      const result = await bookingsCollection.find().toArray();
+      res.send(result);
+    });
     app.get('/bookings', verifyToken, async (req, res) => {
       const userEmail = req.query.email;
       const query = { touristEmail: userEmail };
